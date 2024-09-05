@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+
+  LeaderboardEntry LeaderboardEntry[]
+}
+
+// Source:
+// https://github.com/ODDInvictus/ibs3/blob/6fafc18/prisma/schema.prisma
+
+model Settings {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  value       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+//
+// Leaderboards
+//
+enum LeaderboardTypes {
+  SCORE
+  COUNT
+  TIME
+  ADTMEISTER
+}
+
+enum LeaderboardSort {
+  ASC
+  DESC
+}
+
+model Leaderboard {
+  id        String   @id @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pinned Boolean @default(false)
+
+  name        String           @unique
+  description String
+  type        LeaderboardTypes
+  sortBy      LeaderboardSort
+
+  opensAt  DateTime?
+  closesAt DateTime?
+
+  // Entries
+  LeaderboardEntries LeaderboardEntry[]
+}
+
+model LeaderboardEntry {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  leaderboard   Leaderboard @relation(fields: [leaderboardId], references: [id], onDelete: Cascade)
+  leaderboardId String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        Int
+
+  // The value of this entry
+  value Int
+}
